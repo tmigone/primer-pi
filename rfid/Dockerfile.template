@@ -1,0 +1,16 @@
+FROM balenalib/%%BALENA_ARCH%%-debian:sid-build-20240930
+
+WORKDIR /usr/app
+
+RUN install_packages rustup
+RUN rustup default stable
+
+
+COPY ./Cargo.* ./
+COPY ./src ./src
+
+#dev-cmd-live=balena-idle
+RUN cargo build --locked --release
+
+
+CMD [ "./target/release/rfid" ]
