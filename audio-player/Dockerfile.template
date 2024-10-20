@@ -1,0 +1,16 @@
+FROM balenalib/%%BALENA_ARCH%%-node:12-run
+
+WORKDIR /usr/app
+
+ENV PULSE_SERVER=unix:/run/pulse/pulseaudio.socket
+ENV PULSE_SINK=alsa_output.bcm2835-jack.stereo-fallback
+
+RUN install_packages python pkg-config make g++ libpulse-dev
+
+COPY package*.json ./
+RUN npm install
+
+COPY src/ src/
+
+#dev-cmd-live=npm run watch
+CMD [ "npm", "run", "start" ]

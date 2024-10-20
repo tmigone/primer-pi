@@ -1,0 +1,1 @@
+FROM bh.cr/balenalabs/audio-%%BALENA_ARCH%%

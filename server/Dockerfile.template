@@ -1,0 +1,14 @@
+FROM balenalib/%%BALENA_ARCH%%-debian-node:20-bookworm
+
+WORKDIR /usr/app
+
+RUN install_packages build-essential python3
+
+COPY package*.json ./
+RUN npm install
+
+COPY public/ public/
+COPY src/ src/
+
+#dev-cmd-live=npm run watch
+CMD [ "npm", "run", "start" ]

@@ -1,7 +1,29 @@
 version: 2.4
 
+volumes:
+  pulse:
+
 services:
-  rfid:
-    build: ./rfid
+
+  rfid-reader:
+    build: ./rfid-reader
+    privileged: true
+
+  audio-player:
+    build: ./audio-player
+    privileged: true
+    volumes:
+      - pulse:/run/pulse
+
+  server:
+    build: ./server
     ports:
-      - 80:80
+      - 3000:3000
+
+  # https://github.com/balena-io-experimental/audio
+  audio:
+    build: ./audio
+    privileged: true
+    volumes:
+      - pulse:/run/pulse
+
