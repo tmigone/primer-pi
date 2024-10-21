@@ -2,9 +2,11 @@
 const Pulse = require('pulseaudio2')
 const wav = require('wav')
 const fs = require('fs')
+const path = require('path')
 const socketIO = require('socket.io-client')
 
 const SERVER_URL = 'http://server:3000'
+const AUDIO_CONTENT_DIR = '/audio';
 
 console.log(`-- Audio player --`)
 console.log(`PULSE_SERVER: ${process.env.PULSE_SERVER}`)
@@ -18,6 +20,8 @@ let currentFile = null // The file being played
 let playbackStream = null // The PulseAudio playback stream being played
 
 io.on('play', ({ file }) => {
+    file = path.join(AUDIO_CONTENT_DIR, file)
+
     // If we are already playing the same file, ignore the request
     if (playbackStream !== null && file === currentFile) return;
 

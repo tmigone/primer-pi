@@ -16,7 +16,9 @@
             background-color: #f0f4f8;
         }
 
-        h1, h2, h3 {
+        h1,
+        h2,
+        h3 {
             color: #2c3e50;
         }
 
@@ -25,7 +27,7 @@
             padding: 15px;
             border-radius: 5px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         table {
@@ -33,10 +35,11 @@
             border-collapse: collapse;
             margin-top: 20px;
             background-color: #ffffff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        th, td {
+        th,
+        td {
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid #e0e0e0;
@@ -83,7 +86,7 @@
             padding: 20px;
             background-color: #ffffff;
             border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         #add-mapping-form input[type="text"] {
@@ -107,6 +110,46 @@
 
         #add-mapping-form button:hover {
             background-color: #27ae60;
+        }
+
+        #upload-audio-form {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #upload-audio-form input[type="file"] {
+            margin-bottom: 10px;
+        }
+
+        #upload-audio-form button {
+            padding: 10px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #upload-audio-form button:hover {
+            background-color: #2980b9;
+        }
+
+        #audio-files-list {
+            list-style-type: none;
+            padding: 0;
+            margin-top: 10px;
+        }
+
+        #audio-files-list li {
+            background-color: #ffffff;
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
@@ -135,6 +178,14 @@
         <input type="text" id="new-file-path" placeholder="Audio File Path" required>
         <button type="submit">Add Mapping</button>
     </form>
+
+    <h2>Available Audio Files</h2>
+    <form id="upload-audio-form" enctype="multipart/form-data">
+        <input type="file" id="audio-file-input" accept=".wav" required>
+        <button type="submit">Upload WAV File</button>
+    </form>
+    <ul id="audio-files-list"></ul>
+
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
@@ -265,7 +316,6 @@
             document.getElementById('new-file-path').value = '';
         }
 
-
         // Function to update the RFID data display
         function updateRfidDataDisplay(data) {
             const rfidDataDiv = document.getElementById('rfid-data');
@@ -282,6 +332,9 @@
         // Request initial data when the page loads
         socket.emit('get-db');
 
+        // Request initial audio files list when the page loads
+        socket.emit('get-audio-files');
+
         // Listen for updates to the RFID data
         socket.on('db-data', (data) => {
             db = data;
@@ -292,6 +345,58 @@
         socket.on('rfid-read', (data) => {
             updateRfidDataDisplay(data);
         });
+
+        // Function to update the audio files list
+        function updateAudioFilesList(files) {
+            const audioFilesList = document.getElementById('audio-files-list');
+            audioFilesList.innerHTML = ''; // Clear existing list items
+            files.forEach(file => {
+                const li = document.createElement('li');
+                li.textContent = file;
+                audioFilesList.appendChild(li);
+            });
+        }
+
+        // Function to handle audio file upload
+        function uploadAudioFile(event) {
+            event.preventDefault();
+            const fileInput = document.getElementById('audio-file-input');
+            const file = fileInput.files[0];
+
+            if (file) {
+                const formData = new FormData();
+                formData.append('filename', file);
+
+                fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Audio file uploaded successfully');
+                            fileInput.value = '';
+                            socket.emit('get-audio-files');
+                        } else {
+                            alert('Failed to upload file. Please try again.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred. Please try again.');
+                    });
+            } else {
+                alert('Please select a WAV file to upload.');
+            }
+        }
+
+        // Listen for audio files updates
+        socket.on('audio-files', ({ files }) => {
+            updateAudioFilesList(files);
+        });
+
+        // Add event listener for audio file upload form
+        document.getElementById('upload-audio-form').addEventListener('submit', uploadAudioFile);
     </script>
 </body>
 

@@ -3,7 +3,9 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import fs = require('fs');
 import path = require('path');
+import multer from 'multer';
 
+const AUDIO_CONTENT_DIR = '/audio';
 const DATABASE_FILE = 'db.json';
 const INIT_DATABASE_FILE = 'db.init.json';
 
@@ -14,9 +16,27 @@ const io = new Server(httpServer);
 initDb();
 let db = readDb();
 
+const upload = multer({ dest: AUDIO_CONTENT_DIR });
+
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+});
+app.post('/upload', upload.single('filename'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).send('No file uploaded.');
+    }
+
+    const oldPath = req.file.path;
+    const newPath = path.join(AUDIO_CONTENT_DIR, req.file.originalname);
+
+    fs.rename(oldPath, newPath, (err) => {
+        if (err) {
+            console.error('Error moving uploaded file:', err);
+            return res.status(500).send('Error saving file.');
+        }
+        res.status(200).json({ filename: req.file?.originalname, success: true  });
+    });
 });
 
 io.on("connection", (socket) => {
@@ -46,6 +66,20 @@ io.on("connection", (socket) => {
         writeDb(db);
         socket.emit('db-data', db);
     });
+
+    socket.on('get-audio-files', () => {
+        fs.readdir(AUDIO_CONTENT_DIR, (err, files) => {
+            if (err) {
+                console.error('Error reading audio directory:', err);
+            } else {
+                const audioFiles = files.filter(file => {
+                    const ext = path.extname(file).toLowerCase();
+                    return ['.wav'].includes(ext);
+                });
+                socket.emit('audio-files', { files: audioFiles });
+            }
+        });
+    })
 });
 
 console.log('--- Raspibox Server ---');

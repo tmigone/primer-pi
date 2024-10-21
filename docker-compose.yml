@@ -2,6 +2,7 @@ version: 2.4
 
 volumes:
   pulse:
+  audio-content:
 
 services:
 
@@ -14,15 +15,17 @@ services:
     privileged: true
     volumes:
       - pulse:/run/pulse
+      - audio-content:/audio
 
   server:
     build: ./server
     ports:
       - 3000:3000
+    volumes:
+      - audio-content:/audio
 
   audio:
     build: ./audio
     privileged: true
     volumes:
       - pulse:/run/pulse
-
