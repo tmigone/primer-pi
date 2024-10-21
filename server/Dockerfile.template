@@ -11,4 +11,6 @@ COPY public/ public/
 COPY src/ src/
 
 #dev-cmd-live=npm run watch
+COPY tsconfig.json ./
+RUN npm run build
 CMD [ "npm", "run", "start" ]

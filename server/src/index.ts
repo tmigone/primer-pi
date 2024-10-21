@@ -22,6 +22,7 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
+// @ts-ignore
 app.post('/upload', upload.single('filename'), (req, res) => {
     if (!req.file) {
         return res.status(400).send('No file uploaded.');
@@ -35,7 +36,7 @@ app.post('/upload', upload.single('filename'), (req, res) => {
             console.error('Error moving uploaded file:', err);
             return res.status(500).send('Error saving file.');
         }
-        res.status(200).json({ filename: req.file?.originalname, success: true  });
+        res.status(200).json({ filename: req.file?.originalname, success: true });
     });
 });
 
