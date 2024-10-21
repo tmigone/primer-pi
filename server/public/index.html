@@ -151,6 +151,70 @@
             border-radius: 4px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
+
+        @media screen and (max-width: 600px) {
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+
+            tr {
+                margin-bottom: 15px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            td {
+                border: none;
+                position: relative;
+                padding-left: 50%;
+                text-align: right;
+                word-break: break-word; /* Add this line */
+            }
+
+            td:before {
+                content: attr(data-label);
+                position: absolute;
+                left: 6px;
+                width: 45%;
+                padding-right: 10px;
+                white-space: nowrap;
+                text-align: left;
+                font-weight: bold;
+            }
+
+            td[data-label="Audio File Path"] {
+                padding-left: 6px; /* Add this block */
+                text-align: left;
+            }
+
+            td[data-label="Audio File Path"]:before {
+                position: static;
+                display: block;
+                width: 100%;
+                margin-bottom: 5px;
+            }
+
+            .edit-input {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .edit-actions {
+                text-align: center;
+            }
+
+            .edit-actions button {
+                margin: 5px;
+                width: calc(50% - 10px);
+            }
+        }
     </style>
 </head>
 
@@ -198,9 +262,9 @@
             for (const [uid, filePath] of Object.entries(data)) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${uid}</td>
-                    <td>${filePath}</td>
-                    <td class="edit-actions">
+                    <td data-label="RFID UID">${uid}</td>
+                    <td data-label="Audio File Path">${filePath}</td>
+                    <td data-label="Actions" class="edit-actions">
                         <button onclick="editRow(this)">Edit</button>
                         <button onclick="removeRow(this)">Remove</button>
                     </td>
@@ -212,13 +276,13 @@
         // Function to edit a row
         function editRow(button) {
             const row = button.closest('tr');
-            const uid = row.cells[0].textContent;
-            const filePath = row.cells[1].textContent;
+            const uid = row.querySelector('td[data-label="RFID UID"]').textContent;
+            const filePath = row.querySelector('td[data-label="Audio File Path"]').textContent;
 
             row.innerHTML = `
-                <td>${uid}</td>
-                <td><input type="text" value="${filePath}" class="edit-input"></td>
-                <td class="edit-actions">
+                <td data-label="RFID UID">${uid}</td>
+                <td data-label="Audio File Path"><input type="text" value="${filePath}" class="edit-input"></td>
+                <td data-label="Actions" class="edit-actions">
                     <button onclick="saveRow(this)">Save</button>
                     <button onclick="cancelEdit(this)">Cancel</button>
                 </td>
@@ -228,8 +292,8 @@
         // Function to save an edited row
         function saveRow(button) {
             const row = button.closest('tr');
-            const uid = row.cells[0].textContent;
-            const filePath = row.cells[1].querySelector('input').value;
+            const uid = row.querySelector('td[data-label="RFID UID"]').textContent;
+            const filePath = row.querySelector('input').value;
 
             // Send update to server
             socket.emit('update-db', { uid, filePath });
@@ -239,9 +303,9 @@
 
             // Revert row to normal state
             row.innerHTML = `
-                <td>${uid}</td>
-                <td>${filePath}</td>
-                <td class="edit-actions">
+                <td data-label="RFID UID">${uid}</td>
+                <td data-label="Audio File Path">${filePath}</td>
+                <td data-label="Actions" class="edit-actions">
                     <button onclick="editRow(this)">Edit</button>
                     <button onclick="removeRow(this)">Remove</button>
                 </td>
@@ -251,13 +315,13 @@
         // Function to cancel editing
         function cancelEdit(button) {
             const row = button.closest('tr');
-            const uid = row.cells[0].textContent;
+            const uid = row.querySelector('td[data-label="RFID UID"]').textContent;
             const filePath = db[uid];
 
             row.innerHTML = `
-                <td>${uid}</td>
-                <td>${filePath}</td>
-                <td class="edit-actions">
+                <td data-label="RFID UID">${uid}</td>
+                <td data-label="Audio File Path">${filePath}</td>
+                <td data-label="Actions" class="edit-actions">
                     <button onclick="editRow(this)">Edit</button>
                     <button onclick="removeRow(this)">Remove</button>
                 </td>
@@ -267,7 +331,7 @@
         // Function to remove a row
         function removeRow(button) {
             const row = button.closest('tr');
-            const uid = row.cells[0].textContent;
+            const uid = row.querySelector('td[data-label="RFID UID"]').textContent;
 
             if (confirm(`Are you sure you want to remove the mapping for RFID UID: ${uid}?`)) {
                 // Send remove request to server
@@ -302,8 +366,8 @@
             const tableBody = document.querySelector('#rfid-table tbody');
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
-                <td>${uid}</td>
-                <td>${filePath}</td>
+                <td data-label="RFID UID">${uid}</td>
+                <td data-label="Audio File Path">${filePath}</td>
                 <td class="edit-actions">
                     <button onclick="editRow(this)">Edit</button>
                     <button onclick="removeRow(this)">Remove</button>
