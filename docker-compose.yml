@@ -20,7 +20,6 @@ services:
     ports:
       - 3000:3000
 
-  # https://github.com/balena-io-experimental/audio
   audio:
     build: ./audio
     privileged: true

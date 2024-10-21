@@ -13,25 +13,31 @@ console.log(`PULSE_SINK: ${process.env.PULSE_SINK}`)
 const io = socketIO(SERVER_URL);
 const ctx = new Pulse()
 
+let lastFile = null // The last file played
 let currentFile = null // The file being played
 let playbackStream = null // The PulseAudio playback stream being played
 
-io.on('play', (file) => {
-    if (playbackStream !== null) {
-        if (file === currentFile) {
-            return
-        } else {
-            stop(playbackStream)
-        }
+io.on('play', ({ file }) => {
+    // If we are already playing the same file, ignore the request
+    if (playbackStream !== null && file === currentFile) return;
+
+    // If we are playing another file, stop it before playing the new file
+    if (playbackStream !== null && file !== currentFile) stop(playbackStream);
+
+    // Check if the audio file exists before attempting to play it
+    if (!fs.existsSync(file)) {
+        console.error(`Audio file not found: ${file}`);
+        return;
     }
+
     play(ctx, file)
 })
 
 io.on('stop', () => {
-    stop(playbackStream, true)
+    stop(playbackStream)
 })
 
-
+// Given a PulseAudio context and a WAV file, create a playback stream and play the file
 function play(ctx, wavFile) {
     const reader = new wav.Reader()
     console.log(`Playing ${wavFile}`)
@@ -46,6 +52,7 @@ function play(ctx, wavFile) {
         })
         playbackStream = play
         currentFile = wavFile
+        lastFile = wavFile
 
         let duration = 0
         reader.on('data', (data) => {
@@ -61,10 +68,8 @@ function play(ctx, wavFile) {
     })
 }
 
-function stop(playbackStream, force = false) {
-    if (force) {
-        console.log(`Force-stopping playback stream`)
-    }
+// Given a playback stream, stop it
+function stop(playbackStream) {
     if (playbackStream !== null) {
         playbackStream.end()
         playbackStream = null

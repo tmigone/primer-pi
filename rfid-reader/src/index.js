@@ -24,11 +24,14 @@ const softSPI = new SoftSPI({
 });
 const mfrc522 = new Mfrc522(softSPI).setResetPin(GPIO_RESET);
 
+let lastReadUid = null;
+
 setInterval(function () {
     mfrc522.reset();
 
     let response = mfrc522.findCard();
     if (!response.status) {
+        lastReadUid = null;
         return;
     }
 
@@ -40,8 +43,11 @@ setInterval(function () {
 
     const uid = response.data;
     const uidHex = uid.map(byte => byte.toString(16).padStart(2, '0')).join('');
-    console.log("RFID detected with UID:", uidHex);
-    io.emit('rfid-read', uidHex);
+    if (uidHex !== lastReadUid) {
+        console.log("RFID detected with UID:", uidHex);
+        io.emit('rfid-read', uidHex);
+        lastReadUid = uidHex;
+    }
 
     mfrc522.stopCrypto();
 }, RFID_SCAN_INTERVAL);
