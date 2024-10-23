@@ -1,0 +1,20 @@
+{
+  "name": "rotary-encoder",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "bash gpio.sh && node src/index.js",
+    "watch": "bash gpio.sh && nodemon src/index.js"
+  },
+  "author": "Tomás Migone <tomasmigone@gmail.com>",
+  "license": "MIT",
+  "description": "",
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  },
+  "dependencies": {
+    "nodary-encoder": "^0.1.4",
+    "onoff": "^6.0.3",
+    "socket.io-client": "^4.8.0"
+  }
+}

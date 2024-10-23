@@ -1,15 +1,15 @@
+# yes, this is a container only to deal with the rotary encoder
 FROM balenalib/%%BALENA_ARCH%%-node:20-run
 
 WORKDIR /usr/app
 
-ENV PULSE_SERVER=unix:/run/pulse/pulseaudio.socket
-ENV PULSE_SINK=alsa_output.bcm2835-jack.stereo-fallback
-
-RUN install_packages python pkg-config make g++ libpulse-dev
+RUN install_packages python-is-python3 make g++
+# g++ python3-dev git make 
 
 COPY package*.json ./
 RUN npm install
 
+COPY gpio.sh .
 COPY src/ src/
 
 #dev-cmd-live=npm run watch

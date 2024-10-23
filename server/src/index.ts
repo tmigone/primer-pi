@@ -12,11 +12,10 @@ const INIT_DATABASE_FILE = 'db.init.json';
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer);
+const upload = multer({ dest: AUDIO_CONTENT_DIR });
 
 initDb();
 let db = readDb();
-
-const upload = multer({ dest: AUDIO_CONTENT_DIR });
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.get('/', (req, res) => {
@@ -52,6 +51,14 @@ io.on("connection", (socket) => {
             console.log(`No audio file found for RFID ${uidHex}`);
             return;
         }
+    });
+
+    socket.on('button-pressed', () => {
+        socket.broadcast.emit('stop');
+    });
+
+    socket.on('encoder-rotated', (direction) => {
+        socket.broadcast.emit('volume', direction);
     });
 
     socket.on('get-db', () => {
@@ -90,21 +97,21 @@ httpServer.listen(3000);
 
 // Database functions
 function initDb() {
-    const dbPath = path.join(__dirname, DATABASE_FILE);
+    const dbPath = path.join(AUDIO_CONTENT_DIR, DATABASE_FILE);
     if (!fs.existsSync(dbPath)) {
         const initDbPath = path.join(__dirname, INIT_DATABASE_FILE);
         fs.copyFileSync(initDbPath, dbPath);
-        console.log(`Database initialized from ${INIT_DATABASE_FILE}`);
+        console.log(`Database initialized from ${initDbPath}`);
     }
 }
 
 function readDb() {
-    const dbPath = path.join(__dirname, DATABASE_FILE);
+    const dbPath = path.join(AUDIO_CONTENT_DIR, DATABASE_FILE);
     const db = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
     return db;
 }
 
 function writeDb(db: any) {
-    const dbPath = path.join(__dirname, DATABASE_FILE);
+    const dbPath = path.join(AUDIO_CONTENT_DIR, DATABASE_FILE);
     fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
 }

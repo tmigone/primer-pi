@@ -10,6 +10,12 @@ services:
     build: ./rfid-reader
     privileged: true
 
+  rotary-encoder:
+    build: ./rotary-encoder
+    privileged: true
+    labels:
+      io.balena.features.sysfs: 1
+
   audio-player:
     build: ./audio-player
     privileged: true
@@ -20,7 +26,7 @@ services:
   server:
     build: ./server
     ports:
-      - 3000:3000
+      - 80:3000
     volumes:
       - audio-content:/audio
 

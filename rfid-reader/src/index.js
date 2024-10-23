@@ -2,7 +2,7 @@ const Mfrc522 = require('rc522-rpi');
 const SoftSPI = require('rpi-softspi');
 const socketIO = require('socket.io-client');
 
-// Raspberry Pi GPIO pins
+// Raspberry Pi physical header pins
 const GPIO_SCLK = 23;
 const GPIO_MOSI = 19;
 const GPIO_MISO = 21;
