@@ -80,24 +80,21 @@ function play(ctx, wavFile) {
 
     reader.pause()
     reader.on('format', (fmt) => {
-        const play = ctx.createPlaybackStream({
+        const playStream = ctx.createPlaybackStream({
             channels: fmt.channels,
             rate: fmt.sampleRate,
             format: (fmt.signed ? 'S' : 'U') + fmt.bitDepth + fmt.endianness,
         })
-        playbackStream = play
+        playStream.on('drain', function () {
+            playStream.end()
+        })
+
+        playbackStream = playStream
         currentFile = wavFile
         lastFile = wavFile
 
-        let duration = 0
         reader.on('data', (data) => {
-            play.write(data)
-            duration += data.length / (fmt.bitDepth / 8 * fmt.sampleRate * fmt.channels)
-        })
-        reader.on('end', () => {
-            setTimeout(() => {
-                stop(playbackStream)
-            }, duration * 1000)
+            playStream.write(data)
         })
         reader.resume()
     })
@@ -106,6 +103,7 @@ function play(ctx, wavFile) {
 // Given a playback stream, stop it
 function stop(playbackStream) {
     if (playbackStream !== null) {
+        playbackStream.stop()
         playbackStream.end()
         playbackStream = null
         currentFile = null
